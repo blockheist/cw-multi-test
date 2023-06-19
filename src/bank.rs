@@ -4,10 +4,11 @@ use schemars::JsonSchema;
 
 use cosmwasm_std::{
     coin, to_binary, Addr, AllBalanceResponse, Api, BalanceResponse, BankMsg, BankQuery, Binary,
-    BlockInfo, Coin, Event, Querier, Storage,
+    BlockInfo, Coin, Event, Querier, Storage, Uint128,
 };
 use cw_storage_plus::Map;
 use cw_utils::NativeBalance;
+use serde::{Deserialize, Serialize};
 
 use crate::app::CosmosRouter;
 use crate::executor::AppResponse;
@@ -17,6 +18,14 @@ use crate::prefixed_storage::{prefixed, prefixed_read};
 const BALANCES: Map<&Addr, NativeBalance> = Map::new("balances");
 
 pub const NAMESPACE_BANK: &[u8] = b"bank";
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct SupplyResponse {
+    /// Always returns a Coin with the requested denom.
+    /// This will be of zero amount if the denom does not exist.
+    pub amount: Coin,
+}
 
 // WIP
 #[derive(Clone, std::fmt::Debug, PartialEq, Eq, JsonSchema)]
@@ -203,6 +212,22 @@ impl Module for BankKeeper {
                     .find(|c| c.denom == denom)
                     .unwrap_or_else(|| coin(0, denom));
                 let res = BalanceResponse { amount };
+                Ok(to_binary(&res)?)
+            }
+            BankQuery::Supply { denom } => {
+                // let amount = self
+                //     .supplies
+                //     .get(denom)
+                //     .cloned()
+                //     .unwrap_or_else(Uint128::zero);
+                let res = SupplyResponse {
+                    amount: Coin {
+                        amount: Uint128::from(5000_000_000u128),
+                        denom: denom.to_string(),
+                        ..Default::default()
+                    },
+                };
+
                 Ok(to_binary(&res)?)
             }
             q => bail!("Unsupported bank query: {:?}", q),
