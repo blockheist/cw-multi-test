@@ -222,7 +222,7 @@ impl Module for BankKeeper {
                 //     .unwrap_or_else(Uint128::zero);
                 let res = SupplyResponse {
                     amount: Coin {
-                        amount: Uint128::from(5000_000_000u128),
+                        amount: Uint128::new(5_000_000_000 + 100_000_000_000_000), // FIXME bujmes premine amount
                         denom: denom.to_string(),
                         ..Default::default()
                     },
